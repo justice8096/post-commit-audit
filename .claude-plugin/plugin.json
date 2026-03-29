@@ -1,6 +1,6 @@
 {
   "name": "Post-Commit Audit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unified post-commit security and compliance audit suite — orchestrates SAST/DAST scanning, supply chain auditing, CWE mapping, LLM compliance reporting, and contribution analysis",
   "author": "Justice",
   "license": "MIT",
