@@ -1,0 +1,25 @@
+# Audit output (regenerated per run)
+audits/
+
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE configs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log

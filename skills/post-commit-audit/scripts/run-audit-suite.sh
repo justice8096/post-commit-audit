@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 # Post-Commit Audit Suite — Orchestrates all 5 audits
 # Usage: ./run-audit-suite.sh [project-path] [--fix] [--push]
 #
@@ -23,18 +24,16 @@ for arg in "$@"; do
     esac
 done
 
-# Validate path
-if [[ "$PROJECT_PATH" == *".."* ]]; then
-    echo "Error: Path traversal detected" >&2
-    exit 1
-fi
-
+# Validate and canonicalize path
 if [ ! -d "$PROJECT_PATH" ]; then
     echo "Error: Project path '$PROJECT_PATH' not found" >&2
     exit 1
 fi
 
-PROJECT_PATH="$(cd "$PROJECT_PATH" 2>/dev/null && pwd)"
+PROJECT_PATH="$(cd "$PROJECT_PATH" 2>/dev/null && pwd)" || {
+    echo "Error: Cannot resolve project path" >&2
+    exit 1
+}
 AUDIT_DIR="${PROJECT_PATH}/audits"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -140,10 +139,16 @@ echo ""
 echo "▶ PHASE 3: Summary"
 echo "───────────────────"
 
-# Count findings from existing reports
+# Count findings from existing reports (validate grep output is numeric)
 if [ -f "${AUDIT_DIR}/sast-dast-scan.md" ]; then
-    TOTAL_FINDINGS=$((TOTAL_FINDINGS + $(grep -c "CRITICAL\|HIGH\|MEDIUM" "${AUDIT_DIR}/sast-dast-scan.md" 2>/dev/null || echo 0)))
-    CRITICAL_FINDINGS=$((CRITICAL_FINDINGS + $(grep -c "CRITICAL" "${AUDIT_DIR}/sast-dast-scan.md" 2>/dev/null || echo 0)))
+    count=$(grep -c "CRITICAL\|HIGH\|MEDIUM" "${AUDIT_DIR}/sast-dast-scan.md" 2>/dev/null || echo 0)
+    if [[ "$count" =~ ^[0-9]+$ ]]; then
+        TOTAL_FINDINGS=$((TOTAL_FINDINGS + count))
+    fi
+    count=$(grep -c "CRITICAL" "${AUDIT_DIR}/sast-dast-scan.md" 2>/dev/null || echo 0)
+    if [[ "$count" =~ ^[0-9]+$ ]]; then
+        CRITICAL_FINDINGS=$((CRITICAL_FINDINGS + count))
+    fi
 fi
 
 # Determine overall status
@@ -181,9 +186,29 @@ cat "${AUDIT_DIR}/AUDIT_SUMMARY.txt"
 if [ "$DO_PUSH" = true ] && command -v git &>/dev/null && [ -d "${PROJECT_PATH}/.git" ]; then
     echo ""
     echo "▶ Pushing audit reports to git..."
-    git -C "$PROJECT_PATH" add -- audits/
+
+    # Validate timestamp format before using in commit message
+    if [[ ! "$TIMESTAMP" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]; then
+        echo "Error: Invalid timestamp format" >&2
+        exit 1
+    fi
+
+    # Stage only expected report files (not arbitrary files in audits/)
+    for report in AUDIT_SUMMARY.txt sast-dast-scan.md supply-chain-audit.md cwe-mapping.md llm-compliance-report.md contribution-analysis.md; do
+        if [ -f "${AUDIT_DIR}/${report}" ]; then
+            git -C "$PROJECT_PATH" add -- "audits/${report}"
+        fi
+    done
+
     git -C "$PROJECT_PATH" commit -m "audit: post-commit security & compliance sweep ${TIMESTAMP}" || echo "Nothing to commit"
-    git -C "$PROJECT_PATH" push || echo "Push failed — you may need to push manually"
+
+    # Interactive confirmation before push
+    read -rp "Push audit reports to remote? [y/N] " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        git -C "$PROJECT_PATH" push || echo "Push failed — you may need to push manually"
+    else
+        echo "  Skipped push. Run 'git push' manually when ready."
+    fi
 fi
 
 echo ""
