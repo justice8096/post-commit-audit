@@ -1,5 +1,8 @@
 # Post-Commit Audit
 
+![Lint](https://github.com/justice8096/post-commit-audit/actions/workflows/lint.yml/badge.svg)
+![Release](https://img.shields.io/github/v/release/justice8096/post-commit-audit)
+
 A unified orchestration skill that runs a full security-and-compliance audit suite after every major git check-in. This is the standard quality gate — no code ships without being scanned, classified, mapped to compliance frameworks, and attributed.
 
 ## What It Does
