@@ -204,7 +204,7 @@ if [ "$DO_PUSH" = true ] && command -v git &>/dev/null && [ -d "${PROJECT_PATH}/
         fi
     done
 
-    git -C "$PROJECT_PATH" commit -m "audit: post-commit security & compliance sweep ${TIMESTAMP}" || echo "Nothing to commit"
+    git -C "$PROJECT_PATH" commit -S -m "audit: post-commit security & compliance sweep ${TIMESTAMP}" || echo "Nothing to commit"
 
     # Interactive confirmation before push
     read -rp "Push audit reports to remote? [y/N] " confirm

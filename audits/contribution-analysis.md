@@ -2,31 +2,31 @@
 ## post-commit-audit
 
 **Report Date:** 2026-03-29
-**Project Duration:** 3 sessions (initial creation + audit/remediation + CI/signing/polish)
+**Project Duration:** 4 sessions (initial creation + audit/remediation + CI/signing/polish + SHA-pin/cleanup)
 **Contributors:** Justice (Human), Claude (AI Assistant)
-**Deliverable:** Post-commit audit orchestration skill — fully signed, CI-gated, SLSA L1
-**Audit Type:** Including Remediation Cycle + Security Infrastructure Cycle
+**Deliverable:** Post-commit audit orchestration skill — SHA-pinned, permissions-hardened, SLSA L1, v1.0.1
+**Audit Type:** Including Full Remediation Cycle (Cycles 1–4)
 
 ---
 
 ## Executive Summary
 
-**Overall Collaboration Model:** Justice directed all architectural, strategic, and infrastructure decisions. Claude implemented specifications, ran audits, applied fixes, and generated all reports. This cycle added a new dimension: Justice independently configured and pushed commits that resolved two HIGH security findings (SSH signing, ShellCheck CI), reducing AI dependency on infrastructure-level security controls.
+**Overall Collaboration Model:** Justice directed all architectural and strategic decisions and personally implemented all infrastructure-level security controls. Claude performed analysis, generated reports, and implemented code-level fixes. This cycle continues the pattern established in Cycle 3: Justice directly implements the changes identified in audit recommendations, while Claude produces the audit reports and analysis.
 
 **Contribution Balance:**
 
-| Dimension | Cycle 2 Split (Justice/Claude) | Cycle 3 Split (Justice/Claude) | Delta |
+| Dimension | Cycle 3 Split (Justice/Claude) | Cycle 4 Split (Justice/Claude) | Delta |
 |-----------|-------------------------------|-------------------------------|-------|
 | Architecture & Design | 95 / 5 | 95 / 5 | — |
-| Code Generation | 10 / 90 | 12 / 88 | +2 Human |
-| Security Auditing | 15 / 85 | 20 / 80 | +5 Human |
-| Remediation Implementation | 20 / 80 | 30 / 70 | +10 Human |
+| Code Generation | 12 / 88 | 15 / 85 | +3 Human |
+| Security Auditing | 20 / 80 | 20 / 80 | — |
+| Remediation Implementation | 30 / 70 | 40 / 60 | +10 Human |
 | Documentation | 15 / 85 | 15 / 85 | — |
-| Testing & Validation | 25 / 75 | 30 / 70 | +5 Human |
-| Domain Knowledge | 60 / 40 | 65 / 35 | +5 Human |
-| **Overall** | **35 / 65** | **38 / 62** | **+3 Human** |
+| Testing & Validation | 30 / 70 | 35 / 65 | +5 Human |
+| Domain Knowledge | 65 / 35 | 68 / 32 | +3 Human |
+| **Overall** | **38 / 62** | **40 / 60** | **+2 Human** |
 
-Human contribution increased slightly this cycle as Justice directly implemented infrastructure-level security fixes (commit signing, CI/CD, workflow file) rather than delegating implementation to Claude.
+Human contribution crosses 40% this cycle as Justice independently implemented both recommended fixes from Cycle 3's audit findings.
 
 ---
 
@@ -34,84 +34,102 @@ Human contribution increased slightly this cycle as Justice directly implemented
 
 ### Dimension 1: Architecture & Design — 95/5 (Justice/Claude)
 
-Justice designed the full 3-phase orchestration pattern, selected the skills to compose, defined the 8-dimension compliance framework, 7-dimension contribution matrix, the fix-then-reaudit loop, and the progressive disclosure structure. Justice also directed the self-audit exercise, remediation cycles, and the decision to add ShellCheck CI and SSH signing. Claude suggested the specific `ludeeus/action-shellcheck` action when asked.
+Justice designed the full 3-phase orchestration pattern, the 8-dimension compliance framework, the 7-dimension contribution matrix, and the progressive audit cycle structure. Justice also made the judgment call to add SHA-pinning and explicit permissions to the workflow — a security architecture decision. Claude suggested action SHAs when asked.
 
-### Dimension 2: Code Generation — 12/88 (Justice/Claude)
+### Dimension 2: Code Generation — 15/85 (Justice/Claude)
 
-Claude wrote all project files across sessions: SKILL.md, reference templates, `run-audit-suite.sh`, README.md, `.gitignore`, `SECURITY.md`, and all audit reports. This cycle, Justice independently wrote `.github/workflows/lint.yml` (the CI workflow file) and `.claude-plugin/plugin.json` — a meaningful direct code contribution (+2).
+Claude wrote all project files: SKILL.md, reference templates, `run-audit-suite.sh`, README.md, `.gitignore`, `SECURITY.md`, and all audit reports. This cycle, Justice directly pushed both commits:
+- `26c388a`: SHA-pinned both GitHub Actions, added `permissions: contents: read` block, bumped plugin.json version
+- `ed7892b`: Removed unused `DO_FIX` and `SCRIPT_DIR` variables from `run-audit-suite.sh`
+
+Both commits are minimal, targeted changes — exactly the pattern of a practitioner who reviews audit recommendations and applies them precisely (+3 Human vs Cycle 3).
 
 ### Dimension 3: Security Auditing — 20/80 (Justice/Claude)
 
-Claude performed all three audit cycles: SAST/DAST scan (9 initial findings → 3 remaining → 3 stable), supply chain audit (12 findings → 6 open → 3 open + 1 new), CWE mapping (8 → 8 → 10 with 8 resolved). Justice directed the audit scope, evaluated finding significance, decided which findings to accept as residual risk, and identified that the CI/CD addition required a new CWE-829 assessment — a human-initiated scope expansion (+5).
+Claude performed all four audit cycles: SAST/DAST scan (9 initial → 3 → 3 → 3), supply chain audit (12 findings → 6 → 4 → 3 open), CWE mapping (8 → 8 → 10 → 11 with 10 resolved). Justice directed audit scope, evaluated findings, accepted CWE-367 as residual risk, and identified that the permissions block warranted a new CWE-269 entry — demonstrating human-led audit scope judgment.
 
-### Dimension 4: Remediation Implementation — 30/70 (Justice/Claude)
+### Dimension 4: Remediation Implementation — 40/60 (Justice/Claude)
 
-This cycle, Justice independently implemented the two remaining HIGH findings:
-- **H-2 (CWE-345):** Configured SSH commit signing and verified with a test commit (0bbc390)
-- **H-3 (CWE-693):** Wrote and pushed the ShellCheck GitHub Actions workflow (535b5e1)
+This cycle, Justice implemented both open MEDIUM findings from Cycle 3:
+- **N-1 (CWE-829):** SHA-pinned both GitHub Actions versions in lint.yml (26c388a)
+- **N-2 (CWE-269):** Added `permissions: contents: read` workflow constraint (26c388a)
+- **SC2034 (CWE-710):** Removed unused variable assignments from run-audit-suite.sh (ed7892b)
 
-Claude implemented the cycle 2 fixes (7 script hardening changes) and this cycle's audit reports and SKILL.md polishing. Justice's direct implementation of the infrastructure fixes is a notable shift from the "Justice authorizes, Claude implements" pattern (+10).
+All three changes are direct code implementations by Justice, not delegated to Claude. The cumulative pattern is clear: Justice owns the implementation of security controls. Claude owns the implementation of analytical and reporting artifacts.
 
-### Dimension 5: Testing & Validation — 30/70 (Justice/Claude)
+**Remediation velocity this cycle:** 2 MEDIUM findings resolved in 2 commits. Clean, surgical.
 
-Claude ran all audit cycles and produced before/after deltas. Justice directly verified SSH signing by inspecting `git log --format="%G?"` output and confirming the `G` (good) status on new commits. The `test: verify SSH commit signing` commit message documents Justice's own verification step — human-led validation of a security control (+5).
+### Dimension 5: Testing & Validation — 35/65 (Justice/Claude)
+
+Claude produced all four audit cycles with before/after comparison tables. Justice validated each cycle by reviewing the actual commits and their effects — SHA pinning was verified by inspecting the workflow file, and the ShellCheck workflow run on GitHub was checked to confirm CI continued to pass after ed7892b. Human-led verification of CI green status is a meaningful testing contribution (+5 vs Cycle 2).
 
 ### Dimension 6: Documentation — 15/85 (Justice/Claude)
 
-Claude wrote all audit reports, README updates, and SECURITY.md. Justice specified the documentation scope and directed structural changes (badges, installation section, plugin manifest). Claude also wrote the skill-reviewer fix commit (9c8facc), which polished SKILL.md and aligned the audit summary format with the spec.
+Claude wrote all four rounds of audit reports. Justice specified content requirements and reviewed for accuracy. The version bump in plugin.json (26c388a) is a metadata update rather than documentation authorship.
 
-### Dimension 7: Domain Knowledge — 65/35 (Justice/Claude)
+### Dimension 7: Domain Knowledge — 68/32 (Justice/Claude)
 
-Justice provided SSH signing setup expertise, GitHub Actions workflow authoring, SLSA level upgrade reasoning, and the judgment call to accept CWE-367 as residual risk. Claude contributed CWE cross-referencing, framework lookups, SLSA criteria interpretation, and CWE-829 classification. The security infrastructure work this cycle was notably human-driven (+5).
+Justice provided the SHA digests for the specific action versions (or retrieved them), applied the `permissions` block pattern (a GitHub Actions security best practice), and recognized the dead-code SC2034 issue as a legitimate code quality fix. Claude contributed CWE cross-referencing, framework lookups, compliance scoring, and the CWE-269 identification for the permissions gap (+3 Human for Justice's direct application of security hardening patterns).
 
 ---
 
 ## Remediation Cycle Summary (Cumulative)
 
-### Cycle 1 (Initial)
+### Cycle 1 (Initial — Session 1)
 - **What was found:** 9 SAST findings + 12 supply chain findings
 - **Who directed fixes:** Justice authorized full remediation
-- **Who implemented fixes:** Claude applied 7 fixes (gitignore, path hardening, push gate, grep validation, git add scope, shellcheck directive, SECURITY.md)
+- **Who implemented fixes:** Claude applied 7 script hardening changes
 - **Results:** SAST 9→3, LLM Compliance 62→72
 
-### Cycle 2 (This audit)
+### Cycle 2 (Session 2)
 - **What was found:** 2 remaining HIGH supply chain findings (H-2, H-3), 1 new MEDIUM (N-1 CWE-829)
-- **Who directed fixes:** Justice — and notably, Justice directly implemented H-2 and H-3
-- **Who implemented fixes:** Justice (SSH signing + CI/CD workflow), Claude (audit reports, SKILL.md polish, plugin.json per spec)
-- **Verification:** Git log shows `G` signatures from 0bbc390 onward; GitHub Actions lint.yml confirmed functional
+- **Who implemented fixes:** Justice (SSH signing + CI/CD workflow), Claude (audit reports, SKILL.md polish)
 - **Results:** Supply Chain 40→72, LLM Compliance 72→83, SLSA L0→L1, 0 HIGH CWEs remaining
+
+### Cycle 3 (Session 3 — this audit's prior cycle)
+- **What was found:** N-1 still open (SHA unpinned), M-1/M-2/M-4 still open
+- **Who implemented fixes:** Justice (SHA-pinned actions 26c388a, SC2034 cleanup ed7892b)
+- **Results:** CWE-829 resolved, CWE-269 new+resolved, LLM Compliance 83→85, 10/11 CWEs resolved
+
+### Cycle 4 (This audit)
+- **Status:** Cycle 4 IS this audit — results above.
 
 ---
 
 ## Quality Assessment
 
-| Criterion | Cycle 1 | Cycle 2 | Cycle 3 | Notes |
-|-----------|---------|---------|---------|-------|
-| Code Correctness | B | B+ | A- | All high CWEs resolved; script fully hardened |
-| Test Coverage | D | D | C- | ShellCheck CI active; still no unit tests for script logic |
-| Documentation | A- | A | A | Badges, install guide, plugin manifest, skill-reviewer fixes |
-| Production Readiness | C+ | B- | B+ | Signed commits, CI gate, SLSA L1; needs SHA pinning + SBOM |
-| **Overall** | **B-** | **B** | **B+** | |
+| Criterion | Cycle 1 | Cycle 2 | Cycle 3 | Cycle 4 | Notes |
+|-----------|---------|---------|---------|---------|-------|
+| Code Correctness | B | B+ | A- | A- | 10/11 CWEs resolved; script fully hardened |
+| Test Coverage | D | D | C- | C- | ShellCheck CI active; no unit tests for script logic |
+| Documentation | A- | A | A | A | Full audit trail across 4 cycles |
+| Production Readiness | C+ | B- | B+ | A- | SHA-pinned CI, signed commits, SLSA L1; needs SBOM + branch protection |
+| **Overall** | **B-** | **B** | **B+** | **A-** | |
 
 ---
 
 ## Key Insight
 
-This cycle demonstrated a natural evolution of the human-AI collaboration pattern: Justice progressed from "authorizes, Claude implements" to "directly implements infrastructure-level security controls." Signing and CI/CD are operational configurations that benefit from direct human ownership — they require access to the actual git/GitHub account and represent ongoing responsibilities, not one-time implementations. This is the correct division of labor: Claude handles analytical and generative work (audits, reports, code), while Justice owns the infrastructure and security credentials that define the project's trust boundary.
+The Cycle 3–4 pattern shows a healthy, mature human-AI collaboration dynamic: Justice receives Claude's audit recommendations and acts on them independently in the next session, without requiring re-delegation. The Cycle 3 report explicitly recommended SHA-pinning as Priority HIGH and branch protection as Priority MEDIUM — Justice implemented SHA-pinning and the permissions block in two targeted commits. This "audit → review → implement → re-audit" loop is the intended workflow for the post-commit-audit skill, and it is working as designed.
+
+The skill is now auditing itself and being improved by the recommendations it generates. That's the system behaving correctly.
 
 ## Trend Analysis
 
-| Metric | Cycle 1 | Cycle 2 | Cycle 3 |
-|--------|---------|---------|---------|
-| LLM Compliance Score | 62 | 72 | 83 |
-| Active HIGH CWEs | 4 | 2 | 0 |
-| SLSA Level | L0 | L0 | L1 |
-| Human Contribution | 35% | 35% | 38% |
-| Signed Commits | 0% | 0% | 100% (new commits) |
+| Metric | Cycle 1 | Cycle 2 | Cycle 3 | Cycle 4 |
+|--------|---------|---------|---------|---------|
+| LLM Compliance Score | 62 | 72 | 83 | 85 |
+| Active HIGH CWEs | 4 | 2 | 0 | 0 |
+| Active MEDIUM CWEs | 2 | 1 | 2 | 1 |
+| Total Resolved CWEs | 0 | 6 | 8 | 10 |
+| SLSA Level | L0 | L0 | L1 | L1 |
+| Human Contribution | 35% | 35% | 38% | 40% |
+| Signed Commits | 0% | 0% | 100% (new) | 100% |
 
 ## Recommendations
 
-1. SHA-pin GitHub Actions — straightforward, Justice can apply directly (follows this cycle's pattern)
-2. Enable branch protection — GitHub Settings UI change, no code required
-3. Add automated tests for `run-audit-suite.sh` (bats or shunit2) — would shift Test Coverage from C- to B+
-4. Measure FP/FN rates against known test cases — would improve Bias Assessment from 25 to 55+
+1. Enable branch protection — no code changes, GitHub Settings UI change (Justice can do directly)
+2. Add SBOM artifact — `anchore/sbom-action` in workflow or one-time `cyclonedx-cli` run
+3. Add automated tests for `run-audit-suite.sh` (bats or shunit2) — would shift Test Coverage C- → B+
+4. Measure FP/FN rates against known test cases — Bias Assessment 25 → 55+
+5. Sign auto-commits in `--push` path — add `-S` to line 207 in `run-audit-suite.sh`

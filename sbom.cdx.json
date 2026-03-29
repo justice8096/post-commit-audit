@@ -1,0 +1,150 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-03-29T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "CycloneDX",
+        "name": "manual",
+        "version": "1.4"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "bom-ref": "post-commit-audit@1.0.1",
+      "name": "post-commit-audit",
+      "version": "1.0.1",
+      "description": "Unified post-commit security and compliance audit suite — orchestrates SAST/DAST scanning, supply chain auditing, CWE mapping, LLM compliance reporting, and contribution analysis",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/justice8096/post-commit-audit"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "bash@4.0+",
+      "name": "bash",
+      "version": ">=4.0",
+      "description": "GNU Bourne Again shell — runtime interpreter for run-audit-suite.sh",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "git@2.0+",
+      "name": "git",
+      "version": ">=2.0",
+      "description": "Distributed version control system — used by run-audit-suite.sh for branch/SHA detection and optional audit commit",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-2.0-only"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "coreutils",
+      "name": "GNU coreutils",
+      "description": "Provides: date, cat, mkdir, grep — used by run-audit-suite.sh for timestamp generation, file output, and finding counts",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "shellcheck@0.9+",
+      "name": "shellcheck",
+      "version": ">=0.9",
+      "description": "Static analysis tool for shell scripts — CI-only dependency via ludeeus/action-shellcheck",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "actions-checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+      "name": "actions/checkout",
+      "version": "v4",
+      "description": "GitHub Actions: checks out repository for CI — SHA-pinned",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "11bd71901bbe5b1630ceea73d27597364c9af683"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/actions/checkout"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38",
+      "name": "ludeeus/action-shellcheck",
+      "version": "2.0.0",
+      "description": "GitHub Actions: runs ShellCheck against bash scripts in CI — SHA-pinned",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "00cae500b08a931fb5698e11e79bfbd38e612a38"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/ludeeus/action-shellcheck"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "post-commit-audit@1.0.1",
+      "dependsOn": [
+        "bash@4.0+",
+        "git@2.0+",
+        "coreutils",
+        "shellcheck@0.9+",
+        "actions-checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+        "action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38"
+      ]
+    }
+  ]
+}
