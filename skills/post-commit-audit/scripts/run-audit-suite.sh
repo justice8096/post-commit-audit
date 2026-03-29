@@ -13,13 +13,11 @@
 set -euo pipefail
 
 PROJECT_PATH="${1:-.}"
-DO_FIX=false
 DO_PUSH=false
 
 # Parse flags
 for arg in "$@"; do
     case "$arg" in
-        --fix)  DO_FIX=true ;;
         --push) DO_PUSH=true ;;
     esac
 done
@@ -36,7 +34,6 @@ PROJECT_PATH="$(cd "$PROJECT_PATH" 2>/dev/null && pwd)" || {
 }
 AUDIT_DIR="${PROJECT_PATH}/audits"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Get git info if available
 GIT_BRANCH="unknown"
