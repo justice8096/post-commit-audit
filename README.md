@@ -85,6 +85,27 @@ graph LR
 
 If any scanner skill is missing, the audit can still run — `post-commit-audit` contains enough context to perform each scan manually. The dedicated skills just do it better and faster.
 
+## Installation
+
+Clone the repo into your Claude Code plugins directory:
+
+```bash
+git clone git@github.com:justice8096/post-commit-audit.git \
+  ~/.claude/plugins/post-commit-audit
+```
+
+Or add it alongside the dependent scanner skills:
+
+```bash
+# Recommended: install the full suite
+git clone git@github.com:justice8096/sast-dast-scanner.git     ~/.claude/plugins/sast-dast-scanner
+git clone git@github.com:justice8096/supply-chain-security.git  ~/.claude/plugins/supply-chain-security
+git clone git@github.com:justice8096/cwe-mapper.git             ~/.claude/plugins/cwe-mapper
+git clone git@github.com:justice8096/post-commit-audit.git      ~/.claude/plugins/post-commit-audit
+```
+
+Claude Code auto-discovers skills in `~/.claude/plugins/`. No further configuration needed.
+
 ## Usage
 
 Run the audit via the skill trigger phrases:

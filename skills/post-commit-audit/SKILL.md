@@ -3,11 +3,10 @@ name: post-commit-audit
 description: >
   This skill should be used when the user asks to "run the full audit", "post-commit audit",
   "security check after merge", "run all security scanners", "compliance sweep", "audit this commit",
-  "run the standard checks", "full security pass", or after any major feature branch merge, release
-  tag, or significant code push. Also trigger proactively when the user completes a substantial
-  coding task and pushes to git — this is the standard quality gate. Orchestrates sast-dast-scanner,
-  supply-chain-security, and cwe-mapper in parallel, then generates an LLM Compliance report and
-  Contribution Analysis matrix.
+  "run the standard checks", or "full security pass", and after any major feature branch merge,
+  release tag, or significant code push. Appropriate whenever a substantial coding task has been
+  pushed to git and a quality gate check is needed. Runs sast-dast-scanner, supply-chain-security,
+  and cwe-mapper in parallel, then produces an LLM Compliance report and Contribution Analysis matrix.
 version: 1.0.0
 author: Justice
 license: MIT
@@ -16,16 +15,6 @@ license: MIT
 # Post-Commit Audit Skill
 
 Unified orchestration skill that runs the full security-and-compliance audit suite after every major git check-in. Ensures no code ships without being scanned, classified, mapped to compliance frameworks, and attributed.
-
-## When to Run
-
-Run this skill:
-
-- After merging a feature branch to main/master
-- After tagging a release
-- After pushing significant changes (new features, refactors, dependency updates)
-- Before opening a PR for review
-- On any "run the checks", "audit this", or "full security pass" request
 
 ## What It Produces
 
@@ -81,7 +70,7 @@ Overall: [PASS/CONDITIONAL PASS/FAIL]
 Action Required: [yes/no] — [summary if yes]
 ```
 
-**Step 7 — Push to Git (if requested).** Stage only `audits/`, commit as `audit: post-commit security & compliance sweep [date]`, push to current branch. Do not push automatically — wait for confirmation.
+**Step 7 — Push to Git (if requested).** Stage only `audits/`, commit as `audit: post-commit security & compliance sweep [date]`, push to current branch. Push is not automatic — confirmation is required before pushing.
 
 ## Remediation Workflow
 
@@ -92,7 +81,18 @@ If Phase 1 finds actionable issues:
 3. Re-run the full audit suite (back to Phase 1)
 4. LLM Compliance becomes a re-audit with before/after deltas
 5. Contribution Analysis captures the remediation cycle
-6. Continue until zero critical/high findings or the user accepts remaining risk
+6. Iterate until zero critical/high findings remain or the user explicitly accepts the residual risk
+
+## Scripts
+
+To run the full suite non-interactively:
+
+```bash
+scripts/run-audit-suite.sh [project-path] [--fix] [--push]
+```
+
+- `--fix` — after scanning, attempt to fix actionable findings
+- `--push` — commit and push audit reports after completion (prompts for confirmation)
 
 ## Reference Files
 
@@ -109,4 +109,4 @@ This skill orchestrates three security scanner skills:
 - **supply-chain-security** — [GitHub](https://github.com/justice8096/supply-chain-security)
 - **cwe-mapper** — [GitHub](https://github.com/justice8096/cwe-mapper)
 
-If any are missing, the audit can still run — this skill contains enough context to perform each scan manually. The dedicated skills produce better and faster results.
+If any dependent skill is missing, each scan can be performed manually using the guidance in Phase 1 above. The dedicated skills produce better and faster results.
