@@ -7,9 +7,9 @@ description: >
   release tag, or significant code push. Appropriate whenever a substantial coding task has been
   pushed to git and a quality gate check is needed. Runs sast-dast-scanner, supply-chain-security,
   and cwe-mapper in parallel, then produces an LLM Compliance report and Contribution Analysis matrix.
-version: 1.1.0
+version: 1.2.0
 author: Justice
-license: MIT
+license: CC0-1.0
 ---
 
 # Post-Commit Audit Skill
@@ -51,7 +51,11 @@ Run these three scans concurrently. Each is independent.
 
 **Step 2 — Supply Chain Audit.** Trigger the **supply-chain-security** skill. Key checks: dependency pinning, lockfile integrity, CI/CD secret handling, SBOM generation (CycloneDX 1.4+), SLSA level assessment (L0-L4). Output as Markdown with risk matrix and framework compliance table.
 
-**Step 3 — CWE Mapping.** Trigger the **cwe-mapper** skill. Identify CWE IDs for each finding, then map to 8 compliance frameworks: OWASP Top 10 2021, OWASP LLM Top 10 2025, NIST SP 800-53, EU AI Act (Art. 25), ISO 27001, SOC 2, MITRE ATT&CK, MITRE ATLAS. Output as Markdown with per-CWE mappings and an aggregate compliance matrix.
+**Step 3 — CWE Mapping.** Trigger the **cwe-mapper** skill. Identify CWE IDs for each finding, then map to 8 compliance frameworks.
+
+> *Framework versions current as of 2026-05 (pin these in every generated report's provenance block):* OWASP Top 10:2021; OWASP LLM Top 10 v1.1 (2024-10); NIST SP 800-53 Rev. 5 (2020-09); EU AI Act (Regulation (EU) 2024/1689) Art. 25 (cybersecurity requirements for high-risk AI systems); ISO/IEC 27001:2022; SOC 2 (AICPA Trust Services Criteria 2017 + 2022 updates); MITRE ATT&CK v17.1 (2025-04); MITRE ATLAS v4.7.0 (2025-01). CWE numbering references the official CWE list at cwe.mitre.org — verify currency of each finding's CWE entry; CWEs occasionally get deprecated or renumbered.
+
+Output as Markdown with per-CWE mappings and an aggregate compliance matrix.
 
 ### Phase 2: Compliance & Attribution (sequential, after Phase 1)
 
@@ -68,6 +72,20 @@ These reports synthesize Phase 1 findings.
 ```
 POST-COMMIT AUDIT SUMMARY
 ==========================
+
+PROVENANCE BLOCK (required — do not omit)
+-----------------------------------------
+Generated [YYYY-MM-DD HH:MM TZ] by post-commit-audit v[X.Y.Z] (<orchestrator-git-short-hash>)
+Target project: [repo-name] @ [target-commit-short-hash] on branch [branch-name]
+Sources current as of [YYYY-MM] except where individual reports note otherwise.
+Framework versions: OWASP Top 10:2021, OWASP LLM Top 10 v1.1, NIST SP 800-53 Rev. 5,
+                    EU AI Act Art. 25, ISO/IEC 27001:2022, SOC 2 (AICPA TSC 2017+2022),
+                    MITRE ATT&CK v17.1, MITRE ATLAS v4.7.0
+Downstream scanners: sast-dast-scanner v[X], supply-chain-security v[X], cwe-mapper v[X]
+Skill changelog: https://github.com/justice8096/post-commit-audit/blob/master/CHANGELOG.md
+
+AUDIT RESULTS
+-------------
 Date: [timestamp]
 Commit: [short SHA]
 Branch: [branch name]
@@ -82,6 +100,8 @@ Project: [project name and path]
 Overall: [PASS/CONDITIONAL PASS/FAIL]
 Action Required: [yes/no] — [summary if yes]
 ```
+
+The 5 downstream reports (`sast-dast-scan.md`, `supply-chain-audit.md`, `cwe-mapping.md`, `llm-compliance-report.md`, `contribution-analysis.md`) must each begin with their own Provenance Block matching this format. This is the linchpin of the [Skill Versioning and Addendum Framework](https://github.com/justice8096/SecondBrainData/blob/main/SoftwarePractices/Skill-Versioning-and-Addendum-Framework.md) — prior audits remain identifiable for addendum filings when frameworks/standards update.
 
 **Step 7 — Push to Git (if requested).** Stage only `audits/`, commit as `audit: post-commit security & compliance sweep [date]`, push to current branch. Push is not automatic — confirmation is required before pushing.
 
