@@ -7,7 +7,7 @@ description: >
   release tag, or significant code push. Appropriate whenever a substantial coding task has been
   pushed to git and a quality gate check is needed. Runs sast-dast-scanner, supply-chain-security,
   and cwe-mapper in parallel, then produces an LLM Compliance report and Contribution Analysis matrix.
-version: 1.2.0
+version: 1.2.1
 author: Justice
 license: CC0-1.0
 ---
@@ -53,7 +53,7 @@ Run these three scans concurrently. Each is independent.
 
 **Step 3 — CWE Mapping.** Trigger the **cwe-mapper** skill. Identify CWE IDs for each finding, then map to 8 compliance frameworks.
 
-> *Framework versions current as of 2026-05 (pin these in every generated report's provenance block):* OWASP Top 10:2021; OWASP LLM Top 10 v1.1 (2024-10); NIST SP 800-53 Rev. 5 (2020-09); EU AI Act (Regulation (EU) 2024/1689) Art. 25 (cybersecurity requirements for high-risk AI systems); ISO/IEC 27001:2022; SOC 2 (AICPA Trust Services Criteria 2017 + 2022 updates); MITRE ATT&CK v17.1 (2025-04); MITRE ATLAS v4.7.0 (2025-01). CWE numbering references the official CWE list at cwe.mitre.org — verify currency of each finding's CWE entry; CWEs occasionally get deprecated or renumbered.
+> *Framework versions current as of 2026-05 (pin these in every generated report's provenance block):* OWASP Top 10:2021; OWASP Top 10 for LLM Applications 2025 (published 2024-11); NIST SP 800-53 Rev. 5 (2020-09); EU AI Act (Regulation (EU) 2024/1689) Art. 25 (cybersecurity requirements for high-risk AI systems); ISO/IEC 27001:2022; SOC 2 (AICPA Trust Services Criteria 2017 + 2022 updates); MITRE ATT&CK v17.1 (2025-04); MITRE ATLAS v4.7.0 (2025-01). CWE numbering references the official CWE list at cwe.mitre.org — verify currency of each finding's CWE entry; CWEs occasionally get deprecated or renumbered.
 
 Output as Markdown with per-CWE mappings and an aggregate compliance matrix.
 
@@ -78,7 +78,7 @@ PROVENANCE BLOCK (required — do not omit)
 Generated [YYYY-MM-DD HH:MM TZ] by post-commit-audit v[X.Y.Z] (<orchestrator-git-short-hash>)
 Target project: [repo-name] @ [target-commit-short-hash] on branch [branch-name]
 Sources current as of [YYYY-MM] except where individual reports note otherwise.
-Framework versions: OWASP Top 10:2021, OWASP LLM Top 10 v1.1, NIST SP 800-53 Rev. 5,
+Framework versions: OWASP Top 10:2021, OWASP Top 10 for LLM Applications 2025, NIST SP 800-53 Rev. 5,
                     EU AI Act Art. 25, ISO/IEC 27001:2022, SOC 2 (AICPA TSC 2017+2022),
                     MITRE ATT&CK v17.1, MITRE ATLAS v4.7.0
 Downstream scanners: sast-dast-scanner v[X], supply-chain-security v[X], cwe-mapper v[X]
