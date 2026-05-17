@@ -7,27 +7,39 @@ description: >
   release tag, or significant code push. Appropriate whenever a substantial coding task has been
   pushed to git and a quality gate check is needed. Runs sast-dast-scanner, supply-chain-security,
   and cwe-mapper in parallel, then produces an LLM Compliance report and Contribution Analysis matrix.
-version: 1.0.0
+version: 1.2.0
 author: Justice
-license: MIT
+license: CC0-1.0
 ---
 
 # Post-Commit Audit Skill
 
 Unified orchestration skill that runs the full security-and-compliance audit suite after every major git check-in. Ensures no code ships without being scanned, classified, mapped to compliance frameworks, and attributed.
 
+## Target Project
+
+All audit reports are written to the **project under test**, not to the post-commit-audit skill repo. The target project is determined by:
+
+1. **Explicit path** — the user provides a project path (e.g., "audit D:\my-project")
+2. **Context** — the project being discussed in the current conversation
+3. **Current directory** — when running via CLI, the project at `[project-path]`
+
+Reports are written to `{PROJECT_ROOT}/audits/`. If the directory does not exist, create it. If multiple repos are being audited together (e.g., a multi-repo project), write a shared set of reports to each repo's `audits/` directory.
+
 ## What It Produces
 
-Five audit reports in `audits/`, plus a summary index:
+Five audit reports in `{PROJECT_ROOT}/audits/`, plus a summary index:
 
 | # | Report | Source Skill | File |
 |---|--------|-------------|------|
-| 1 | SAST/DAST Scan | sast-dast-scanner | `audits/sast-dast-scan.md` |
-| 2 | Supply Chain Audit | supply-chain-security | `audits/supply-chain-audit.md` |
-| 3 | CWE Mapping | cwe-mapper | `audits/cwe-mapping.md` |
-| 4 | LLM Compliance Report | (this skill) | `audits/llm-compliance-report.md` |
-| 5 | Contribution Analysis | (this skill) | `audits/contribution-analysis.md` |
-| - | Summary Index | (this skill) | `audits/AUDIT_SUMMARY.txt` |
+| 1 | SAST/DAST Scan | sast-dast-scanner | `{PROJECT_ROOT}/audits/sast-dast-scan.md` |
+| 2 | Supply Chain Audit | supply-chain-security | `{PROJECT_ROOT}/audits/supply-chain-audit.md` |
+| 3 | CWE Mapping | cwe-mapper | `{PROJECT_ROOT}/audits/cwe-mapping.md` |
+| 4 | LLM Compliance Report | (this skill) | `{PROJECT_ROOT}/audits/llm-compliance-report.md` |
+| 5 | Contribution Analysis | (this skill) | `{PROJECT_ROOT}/audits/contribution-analysis.md` |
+| - | Summary Index | (this skill) | `{PROJECT_ROOT}/audits/AUDIT_SUMMARY.txt` |
+
+When auditing multiple repos as one logical project, write the same reports to each repo so every repo carries its own audit trail.
 
 ## Audit Sequence
 
@@ -37,28 +49,47 @@ Run these three scans concurrently. Each is independent.
 
 **Step 1 — SAST/DAST Scan.** Trigger the **sast-dast-scanner** skill. If not installed, perform manually: scan for injection patterns (SQL, command, XSS, path traversal), deserialization risks, hardcoded secrets, ReDoS-vulnerable regex, cryptographic weaknesses, and race conditions. Check HTTP security headers, cookie flags, CORS, and TLS. Output as Markdown grouped by severity (CRITICAL to INFO) with CWE references, file/line, code snippets, and remediation.
 
-**Step 2 — Supply Chain Audit.** Trigger the **supply-chain-security** skill. Key checks: dependency pinning, lockfile integrity, CI/CD secret handling, SBOM generation (CycloneDX 1.4), SLSA level assessment (L0-L4). Output as Markdown with risk matrix and framework compliance table.
+**Step 2 — Supply Chain Audit.** Trigger the **supply-chain-security** skill. Key checks: dependency pinning, lockfile integrity, CI/CD secret handling, SBOM generation (CycloneDX 1.4+), SLSA level assessment (L0-L4). Output as Markdown with risk matrix and framework compliance table.
 
-**Step 3 — CWE Mapping.** Trigger the **cwe-mapper** skill. Identify CWE IDs for each finding, then map to 8 compliance frameworks: OWASP Top 10 2021, OWASP LLM Top 10 2025, NIST SP 800-53, EU AI Act (Art. 25), ISO 27001, SOC 2, MITRE ATT&CK, MITRE ATLAS. Output as Markdown with per-CWE mappings and an aggregate compliance matrix.
+**Step 3 — CWE Mapping.** Trigger the **cwe-mapper** skill. Identify CWE IDs for each finding, then map to 8 compliance frameworks.
+
+> *Framework versions current as of 2026-05 (pin these in every generated report's provenance block):* OWASP Top 10:2021; OWASP LLM Top 10 v1.1 (2024-10); NIST SP 800-53 Rev. 5 (2020-09); EU AI Act (Regulation (EU) 2024/1689) Art. 25 (cybersecurity requirements for high-risk AI systems); ISO/IEC 27001:2022; SOC 2 (AICPA Trust Services Criteria 2017 + 2022 updates); MITRE ATT&CK v17.1 (2025-04); MITRE ATLAS v4.7.0 (2025-01). CWE numbering references the official CWE list at cwe.mitre.org — verify currency of each finding's CWE entry; CWEs occasionally get deprecated or renumbered.
+
+Output as Markdown with per-CWE mappings and an aggregate compliance matrix.
 
 ### Phase 2: Compliance & Attribution (sequential, after Phase 1)
 
 These reports synthesize Phase 1 findings.
 
-**Step 4 — LLM Compliance Report.** Read `references/llm-compliance-template.md` for the full scoring rubric and regulatory mappings. Score the project across 8 compliance dimensions (0-100 each): System Transparency, Training Data Disclosure, Risk Classification, Supply Chain Security, Consent & Authorization, Sensitive Data Handling, Incident Response, Bias Assessment. Reference specific Phase 1 findings — fixed CWEs improve Incident Response, unpinned deps lower Supply Chain Security. On re-audit (previous report exists), include a before/after delta table.
+**Step 4 — LLM Compliance Report.** Read `references/llm-compliance-template.md` for the full scoring rubric and regulatory mappings. Score the project across 8 compliance dimensions (0-100 each): System Transparency, Training Data Disclosure, Risk Classification, Supply Chain Security, Consent & Authorization, Sensitive Data Handling, Incident Response, Bias Assessment. Reference specific Phase 1 findings — fixed CWEs improve Incident Response, unpinned deps lower Supply Chain Security. On re-audit (previous report exists in `{PROJECT_ROOT}/audits/`), include a before/after delta table.
 
 **Step 5 — Contribution Analysis.** Read `references/contribution-analysis-template.md` for the full template. Document the human-vs-AI contribution split across 7 dimensions: Architecture & Design, Code Generation, Security Auditing, Remediation, Testing & Validation, Documentation, Domain Knowledge. Each dimension gets a percentage split (e.g., "85/15 Justice/Claude") with explanation. Include an overall quality grade (A+ through F).
 
 ### Phase 3: Wrap-Up
 
-**Step 6 — Generate Summary.** Create `audits/AUDIT_SUMMARY.txt`:
+**Step 6 — Generate Summary.** Create `{PROJECT_ROOT}/audits/AUDIT_SUMMARY.txt`:
 
 ```
 POST-COMMIT AUDIT SUMMARY
 ==========================
+
+PROVENANCE BLOCK (required — do not omit)
+-----------------------------------------
+Generated [YYYY-MM-DD HH:MM TZ] by post-commit-audit v[X.Y.Z] (<orchestrator-git-short-hash>)
+Target project: [repo-name] @ [target-commit-short-hash] on branch [branch-name]
+Sources current as of [YYYY-MM] except where individual reports note otherwise.
+Framework versions: OWASP Top 10:2021, OWASP LLM Top 10 v1.1, NIST SP 800-53 Rev. 5,
+                    EU AI Act Art. 25, ISO/IEC 27001:2022, SOC 2 (AICPA TSC 2017+2022),
+                    MITRE ATT&CK v17.1, MITRE ATLAS v4.7.0
+Downstream scanners: sast-dast-scanner v[X], supply-chain-security v[X], cwe-mapper v[X]
+Skill changelog: https://github.com/justice8096/post-commit-audit/blob/master/CHANGELOG.md
+
+AUDIT RESULTS
+-------------
 Date: [timestamp]
 Commit: [short SHA]
 Branch: [branch name]
+Project: [project name and path]
 
 1. SAST/DAST Scan:        [PASS/FAIL] — [N] findings ([critical] critical, [high] high)
 2. Supply Chain Audit:     [PASS/FAIL] — SLSA Level [N], [N] issues
@@ -69,6 +100,8 @@ Branch: [branch name]
 Overall: [PASS/CONDITIONAL PASS/FAIL]
 Action Required: [yes/no] — [summary if yes]
 ```
+
+The 5 downstream reports (`sast-dast-scan.md`, `supply-chain-audit.md`, `cwe-mapping.md`, `llm-compliance-report.md`, `contribution-analysis.md`) must each begin with their own Provenance Block matching this format. This is the linchpin of the [Skill Versioning and Addendum Framework](https://github.com/justice8096/SecondBrainData/blob/main/SoftwarePractices/Skill-Versioning-and-Addendum-Framework.md) — prior audits remain identifiable for addendum filings when frameworks/standards update.
 
 **Step 7 — Push to Git (if requested).** Stage only `audits/`, commit as `audit: post-commit security & compliance sweep [date]`, push to current branch. Push is not automatic — confirmation is required before pushing.
 
@@ -91,6 +124,7 @@ To run the full suite non-interactively:
 scripts/run-audit-suite.sh [project-path] [--fix] [--push]
 ```
 
+- `[project-path]` — **required** — path to the project to audit. Reports are written to `[project-path]/audits/`.
 - `--fix` — after scanning, attempt to fix actionable findings
 - `--push` — commit and push audit reports after completion (prompts for confirmation)
 
